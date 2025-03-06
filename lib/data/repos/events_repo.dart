@@ -7,8 +7,8 @@ import '../models/event_response.dart';
 class EventRepository {
   final SharedPreferences prefs;
   final Dio dio;
-
-  final String apiKey = dotenv.env['TICKETMASTER_API_KEY'] ?? "";
+//apply api key here, load from dotenv
+  final String apiKey = dotenv.env['TICKETMASTER_API_KEY'] ?? ""; 
   final String baseUrl = "https://app.ticketmaster.com/discovery/v2";
 
   EventRepository({required this.dio, required this.prefs}) {
@@ -18,7 +18,7 @@ class EventRepository {
     dio.options.connectTimeout = const Duration(seconds: 90);
     dio.options.receiveTimeout = const Duration(seconds: 90);
     dio.options.queryParameters = {
-      'apikey': apiKey, // ✅ Ensure API key is always included in queries
+      'apikey': apiKey, // 
     };
   }
 
@@ -27,7 +27,7 @@ class EventRepository {
       print("Fetching events from API...");
 
       final response = await dio.get(
-        '/events', // ✅ T
+        '/events', //
         queryParameters: {
           'page': page,
           'size': size,
