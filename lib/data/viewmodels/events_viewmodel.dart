@@ -3,7 +3,10 @@ import 'package:ticket/data/models/event_model.dart';
 import 'package:ticket/data/repos/events_repo.dart';
 
 class EventsViewmodel with ChangeNotifier {
-  final EventRepository _eventRepository = EventRepository();
+  final EventRepository _eventRepository;
+
+  EventsViewmodel({required EventRepository eventRepository}) 
+      : _eventRepository = eventRepository;
 
   List<Event> _events = [];
   List<Event> _searchedEvents = [];
@@ -18,17 +21,22 @@ class EventsViewmodel with ChangeNotifier {
   bool get isSearching => _isSearching;
 
   /// Fetch events (loads from cache first if offline)
-  Future<void> fetchEvents(int page, int size) async {
+  Future<void> fetchEvents() async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      final eventResponse = await _eventRepository.fetchEvents(page, size);
-      _events = eventResponse.events;
-      _isOffline = false; // Online mode
+      print("Calling fetchEvents()...");
+      final eventResponse = await _eventRepository.fetchEvents(1, 20);
+
+      if (eventResponse.events.isNotEmpty) {
+        _events = eventResponse.events;
+        print("Events fetched successfully! Count: ${_events.length}");
+      } else {
+        print("No events found in API response.");
+      }
     } catch (e) {
-      print("Failed to fetch events, loading from cache...");
-      _isOffline = true;
+      print("Error fetching events: $e");
     }
 
     _isLoading = false;

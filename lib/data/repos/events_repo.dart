@@ -5,77 +5,89 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/event_response.dart';
 
 class EventRepository {
+  final SharedPreferences prefs;
+  final Dio dio;
+
   final String apiKey = dotenv.env['TICKETMASTER_API_KEY'] ?? "";
-   Dio dio = Dio();
+  final String baseUrl = "https://app.ticketmaster.com/discovery/v2";
+
+  EventRepository({required this.dio, required this.prefs}) {
+
+    // ✅ Instead, configure the existing `dio` instance properly
+    dio.options.baseUrl = baseUrl;
+    dio.options.connectTimeout = const Duration(seconds: 90);
+    dio.options.receiveTimeout = const Duration(seconds: 90);
+    dio.options.queryParameters = {
+      'apikey': apiKey, // ✅ Ensure API key is always included in queries
+    };
+  }
 
   Future<EventResponse> fetchEvents(int page, int size) async {
     try {
-      final url =
-          'https://app.ticketmaster.com/discovery/v2/events.json?page=$page&size=$size&apikey=$apiKey';
-      final response = await dio.get(url);
+      print("Fetching events from API...");
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> json = response.data;
-        final eventResponse = EventResponse.fromJson(json);
-        print("Fetched events$eventResponse");
-        await _cacheEvents(jsonEncode(json)); // Cache the fetched events
-        return eventResponse;
-      } else {
-        throw Exception('Failed to load events');
+      final response = await dio.get(
+        '/events', // ✅ T
+        queryParameters: {
+          'page': page,
+          'size': size,
+        },
+      );
+
+      print("✅ API Response: ${response.data}");
+
+      await prefs.setString('cached_events', jsonEncode(response.data));
+      return EventResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      print(" Fetch failed: ${e.message}"); //
+
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        print("⚠️ Timeout Error. Trying cache...");
+        final cachedData = prefs.getString('cached_events');
+
+        if (cachedData != null) {
+          return EventResponse.fromJson(jsonDecode(cachedData));
+        } else {
+          throw Exception(" No cached events available");
+        }
       }
-    } catch (e) {
-      print("Fetch failed: $e. Trying cache...");
-      final cachedData = await _getCachedEvents();
-      if (cachedData != null) {
-        print("Loaded from cache");
-        return EventResponse.fromJson(jsonDecode(cachedData));
-      }
-      throw Exception('No cached data available');
+
+      rethrow; // Propagate other errors
     }
   }
+  Future<EventResponse> searchEvents(String query) async {
+  try {
+    print("🔍 Searching events with keyword: $query");
 
-  Future<EventResponse> searchEvents(String keyword) async {
-    try {
-      final url =
-          'https://app.ticketmaster.com/discovery/v2/events.json?keyword=$keyword&apikey=$apiKey';
-      final response = await dio.get(url);
+    final response = await dio.get(
+      '/events',
+      queryParameters: {
+        'keyword': query,  
+        'apikey': apiKey,  
+      },
+    );
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> json = response.data;
-        final eventResponse = EventResponse.fromJson(json);
-        await _cacheSearchedEvents(jsonEncode(json)); 
-        return eventResponse;
-      } else {
-        throw Exception('Failed to search events');
-      }
-    } catch (e) {
-      print("Search failed: $e. Trying cache...");
-      final cachedData = await _getCachedSearchedEvents();
+    print(" Search API Response: ${response.data}");
+
+    await prefs.setString('cached_search_events', jsonEncode(response.data));
+    return EventResponse.fromJson(response.data);
+  } on DioException catch (e) {
+    print(" Search failed: ${e.message}");
+
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      print(" Timeout. Trying cached search results...");
+
+      final cachedData = prefs.getString('cached_search_events');
       if (cachedData != null) {
-        print("Loaded search results from cache");
         return EventResponse.fromJson(jsonDecode(cachedData));
+      } else {
+        throw Exception(" No cached search results available");
       }
-      throw Exception('No cached search data available');
     }
-  }
 
-  Future<void> _cacheEvents(String data) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('cached_events', data);
+    rethrow;
   }
-
-  Future<String?> _getCachedEvents() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('cached_events');
-  }
-
-  Future<void> _cacheSearchedEvents(String data) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('cached_search_events', data);
-  }
-
-  Future<String?> _getCachedSearchedEvents() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('cached_search_events');
-  }
+}
 }

@@ -18,55 +18,50 @@ class EventList extends StatelessWidget {
             : eventProvider.events;
 
         if (eventProvider.isLoading && events.isEmpty) {
-          return Center(child: SpinKitCircle(
-          color: Colors.blue,
-        ),);
+          return const Center(
+            child: SpinKitCircle(
+              color: Colors.blue,
+              size: 50.0, // Adjust size for better visibility
+            ),
+          );
         }
 
-        return Column(
-          children: [
-            /// **🔴 Offline Banner**
-            if (eventProvider.isOffline)
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(vertical: 8),
-                color: Colors.redAccent,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.cloud_off, color: Colors.white, size: 18),
-                    SizedBox(width: 8),
-                    Text(
-                      "You are offline. Viewing cached events.",
-                      style: TextStyle(color: Colors.white, fontSize: 14),
-                    ),
-                  ],
-                ),
-              ),
-
-            /// **📜 Event List**
-            Expanded(
-              child: ListView.builder(
-                controller: scrollController,
-                physics: AlwaysScrollableScrollPhysics(),
-                itemCount: events.length + 1,
-                itemBuilder: (context, index) {
-                  if (index < events.length) {
-                    return EventTile(event: events[index]);
-                  } else {
-                    return eventProvider.isLoading
-                        ? Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Center(child: SpinKitCircle(
-          color: Colors.blue,
-        ),),
-                          )
-                        : SizedBox.shrink();
-                  }
-                },
+        if (events.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                "No events found. Try searching for something else!",
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+                textAlign: TextAlign.center,
               ),
             ),
-          ],
+          );
+        }
+
+        return Expanded(
+          child: ListView.builder(
+            controller: scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: events.length + 1, // +1 for the loading indicator
+            itemBuilder: (context, index) {
+              if (index < events.length) {
+                return EventTile(event: events[index]);
+              } else {
+                return eventProvider.isLoading
+                    ? const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Center(
+                          child: SpinKitCircle(
+                            color: Colors.blue,
+                            size: 40.0,
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink();
+              }
+            },
+          ),
         );
       },
     );

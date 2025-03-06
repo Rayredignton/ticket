@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:provider/provider.dart';
-import 'package:ticket/data/viewmodels/connectivity_provider.dart';
+import 'package:ticket/data/viewmodels/connectivity_viewmodel.dart';
 import 'package:ticket/screens/home/home_view.dart';
 
 
@@ -42,7 +42,7 @@ class _TicketMobileAppState extends State<TicketMobileApp> {
    
                 builder: (context, child) {
                   return ChangeNotifierProvider(
-                    create: (context) => ConnectivityProvider(context),
+                    create: (context) => ConnectivityViewmodel(context),
                     lazy: false,
                     child: child!,
                   );

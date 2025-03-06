@@ -7,7 +7,7 @@ import 'package:ticket/widgets/utils.dart';
 
 
 //ConnectivityProvider -- For real-time internet connectivity notifications
-class ConnectivityProvider extends ChangeNotifier {
+class ConnectivityViewmodel extends ChangeNotifier {
 
   //InternetConnectivty -- Custom Singleton to listen to network connection changes
   final InternetConnectivity connectivity = InternetConnectivity.instance;
@@ -18,7 +18,7 @@ class ConnectivityProvider extends ChangeNotifier {
   //false -- app is Online and was offline before
   bool? isOffline;
 
-  ConnectivityProvider(context) {
+  ConnectivityViewmodel(context) {
     //Initializing Custom Singleton for listening connection changes
     connectivity.initialise();
 
