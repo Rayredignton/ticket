@@ -57,7 +57,7 @@ void main() {
 
   group('EventRepository Tests', () {
     test('fetchEvents() returns data from API', () async {
-      print("🛠️ Running fetchEvents() - API response test");
+      print(" Running fetchEvents() - API response test");
 
       final fakeResponse = {
         "_embedded": {
@@ -116,7 +116,7 @@ void main() {
     }, timeout: Timeout(Duration(seconds: 10)));
 
     test('fetchEvents() throws an exception when no cache is available', () async {
-      print("🛠️ Testing fetchEvents() with no API and no cache...");
+      print(" Testing fetchEvents() with no API and no cache...");
 
       when(mockDio.get(any, queryParameters: anyNamed('queryParameters')))
           .thenThrow(DioException(
@@ -132,7 +132,7 @@ void main() {
     });
 
     test('searchEvents() returns results from API', () async {
-      print("🛠️ Running searchEvents() - API response test");
+      print("Running searchEvents() - API response test");
 
       final fakeSearchResponse = {
         "_embedded": {
@@ -158,7 +158,7 @@ void main() {
 
       final result = await eventRepository.searchEvents("Concert");
 
-      print("✅ API returned search result: ${result.events.first.name}");
+      print("API returned search result: ${result.events.first.name}");
 
       expect(result.events, isNotEmpty);
       expect(result.events.first.name, equals("Searched Event"));
@@ -166,7 +166,7 @@ void main() {
     });
 
     test('searchEvents() loads from cache on failure', () async {
-      print("🛠️ Simulating searchEvents() failure...");
+      print(" Simulating searchEvents() failure...");
 
       when(mockDio.get(any, queryParameters: anyNamed('queryParameters')))
           .thenThrow(DioException(
